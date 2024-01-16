@@ -4,6 +4,8 @@ require('dotenv').config()
 // Import necessary modules
 const express = require('express')
 const mongoose = require('mongoose')
+const cors = require('cors')
+const corsOptions = require('./config/corsOptions')
 const connectDB = require('./config/dbConnection')
 
 // Define the port to be used or default to 3500
@@ -11,6 +13,9 @@ const PORT = process.env.PORT || 3500
 
 // Create an instance of the Express application
 const app = express()
+
+// Enable Cross-Origin Resource Sharing (CORS) for the Express app
+app.use(cors(corsOptions))
 
 // Connect to the database
 connectDB()
