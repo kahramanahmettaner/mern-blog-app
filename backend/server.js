@@ -6,6 +6,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
+const cookieParser = require('cookie-parser')
 const connectDB = require('./config/dbConnection')
 
 // Define the port to be used or default to 3500
@@ -16,6 +17,12 @@ const app = express()
 
 // Enable Cross-Origin Resource Sharing (CORS) for the Express app
 app.use(cors(corsOptions))
+
+// Enable the Express app to receive and parse JSON data from incoming requests
+app.use(express.json())
+
+// Enable the app to parse cookies received from incoming requests
+app.use(cookieParser())
 
 // Connect to the database
 connectDB()
