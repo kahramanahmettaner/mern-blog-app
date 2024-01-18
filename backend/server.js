@@ -3,6 +3,7 @@ require('dotenv').config()
 
 // Import necessary modules
 const express = require('express')
+const path = require('path')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
@@ -23,6 +24,12 @@ app.use(express.json())
 
 // Enable the app to parse cookies received from incoming requests
 app.use(cookieParser())
+
+// Serve static files (such as CSS, images, etc.) from the 'public' directory
+app.use('/', express.static(path.join(__dirname, 'public')))
+
+// Set up routes for the application
+app.use('/', require('./routes/root'))
 
 // Connect to the database
 connectDB()
