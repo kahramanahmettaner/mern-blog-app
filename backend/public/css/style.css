@@ -15,7 +15,10 @@ body {
     min-height: 100vh;
     background-color: #001524;
     color: #FDE5D4;
-    display: grid;
-    place-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
     padding: 1rem;
 }
