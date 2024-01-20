@@ -5,6 +5,7 @@ require('dotenv').config()
 const express = require('express')
 const path = require('path')
 const mongoose = require('mongoose')
+const { logger } = require('./middleware/logger')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const cookieParser = require('cookie-parser')
@@ -15,6 +16,9 @@ const PORT = process.env.PORT || 3500
 
 // Create an instance of the Express application
 const app = express()
+
+// Enable the use of a custom logger middleware to log request details
+app.use(logger)
 
 // Enable Cross-Origin Resource Sharing (CORS) for the Express app
 app.use(cors(corsOptions))
