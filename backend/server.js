@@ -6,6 +6,8 @@ const express = require('express')
 const path = require('path')
 const mongoose = require('mongoose')
 const { logger } = require('./middleware/logger')
+const errorHandler = require('./middleware/errorHandler')
+const { logEvents } = require('./middleware/logger')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const cookieParser = require('cookie-parser')
@@ -16,6 +18,10 @@ const PORT = process.env.PORT || 3500
 
 // Create an instance of the Express application
 const app = express()
+
+// Connect to the database
+connectDB()
+const db = mongoose.connection
 
 // Enable the use of a custom logger middleware to log request details
 app.use(logger)
@@ -38,12 +44,16 @@ app.use('/', require('./routes/root'))
 // Handle 404 errors
 app.all('*', require('./routes/notFound'))
 
-// Connect to the database
-connectDB()
-const db = mongoose.connection
+// Enable the use of a custom error handling middleware
+app.use(errorHandler)
 
 // Event handler for database connection errors
-db.on('error', (error) => console.log(error))
+mongoose.connection.once('error', err => {
+    console.log(err)
+
+    // Log MongoDB-specific error details
+    logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log')
+})
 
 // Event handler for successful database connection
 db.once('open', () => {
