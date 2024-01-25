@@ -40,6 +40,7 @@ app.use('/', express.static(path.join(__dirname, 'public')))
 
 // Set up routes for the application
 app.use('/', require('./routes/root'))
+app.use('/users', require('./routes/userRoutes'))
 
 // Handle 404 errors
 app.all('*', require('./routes/notFound'))
