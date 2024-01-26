@@ -27,11 +27,16 @@ const getUserById = async (req, res) => {
 // @desc Get all users
 // @route GET /users
 // @access Private
-const getAllUsers = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
-}
+const getAllUsers = async (req, res) => {
+    // Get all users from MongoDB
+    const users = await User.find().select('-password').lean() // don't return password  // without lean mongoose would give a full document with methods like save() we only need data 
+    
+    // If no users 
+    if (!users?.length) {
+        return res.status(400).json({ message: 'No users found' })
+    }
+    res.json(users)
+};
 
 // @desc Create new user
 // @route POST /users
