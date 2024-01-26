@@ -1,5 +1,6 @@
 // Load environment variables from a .env file
 require('dotenv').config()
+require('express-async-errors')
 
 // Import necessary modules
 const express = require('express')

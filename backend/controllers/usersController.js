@@ -1,11 +1,28 @@
+const User = require('../models/User')
+
 // @desc Get a user by ID
 // @route GET /users/:userId
-// @access Public
-const getUserById = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
-}
+// @access Private
+const getUserById = async (req, res) => {
+    const userId = req.params.userId;
+    
+    // Check userId
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' })
+    }
+
+    // Find the user by ID
+    const user = await User.findById(userId).select('-password').lean() // don't return password  // without lean mongoose would give a full document with methods like save() we only need data ;
+
+    // Check if the user exists
+    if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+    }
+
+    // Return the user data
+    res.json({ user });
+
+};
 
 // @desc Get all users
 // @route GET /users
