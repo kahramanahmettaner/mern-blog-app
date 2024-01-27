@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const bcrypt = require('bcrypt')
 
 // @desc Get a user by ID
 // @route GET /users/:userId
@@ -41,11 +42,42 @@ const getAllUsers = async (req, res) => {
 // @desc Create new user
 // @route POST /users
 // @access Private
-const createNewUser = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
-}
+const createNewUser = async (req, res) => {
+    const { username, password, email } = req.body
+
+    // Confirm data
+    if (!username || !password || !email) {
+        return res.status(400).json({ message: 'All fields are required' })
+    }
+
+    // Check for duplicates
+    const duplicateUsername = await User.findOne({ username }).collation({ locale: 'en', strength: 2 }).lean().exec() // exec method will execute the query and return a Promise
+    
+    const duplicateEmail = await User.findOne({ email }).lean().exec() // exec method will execute the query and return a Promise
+
+
+    if (duplicateUsername) {
+        return res.status(409).json({ message: 'Duplicate username' })
+    }
+
+    if (duplicateEmail) {
+        return res.status(409).json({ message: 'Duplicate email address' })
+    }
+
+    // Hash password
+    const hashedPwd = await bcrypt.hash(password, 10) // salt rounds
+
+    const userObject = { username, "password": hashedPwd, email }
+    
+    // Create and store new user
+    const user = await User.create(userObject)
+
+    if (user) { // Created
+        res.status(201).json({ message: `New user '${username}' created` })
+    } else {
+        res.status(400).json({ message: "Invalid user data received" })
+    }
+};
 
 // @desc Update a user
 // @route PATCH /users
