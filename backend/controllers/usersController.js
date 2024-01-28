@@ -91,11 +91,24 @@ const updateUser = (req, res) => {
 // @desc Delete a user
 // @route DELETE /users
 // @access Private
-const deleteUser = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
-}
+const deleteUser = async (req, res) => {
+    const { id } = req.body;
+
+    // Confirm data
+    if (!id) {
+        return res.status(400).json({ message: 'User ID Required' });
+    }
+
+    // Confirm user exists to delete
+    const user = await User.findById(id).exec();
+    if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+    }
+
+    const result = await user.deleteOne();
+    const reply = `Username ${user.username} with ID ${user._id} deleted`;
+    res.json(reply);
+};
 
 module.exports = {
     getUserById,
