@@ -4,10 +4,25 @@ const User = require('../models/User')
 // @desc Get all posts
 // @route GET /posts
 // @access Private
-const getAllPosts =  (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
+const getAllPosts = async (req, res) => {
+    // Get all posts from MongoDB
+    const posts = await Post.find().lean() // without lean mongoose would give a full document with methods like save() we only need data 
+    
+    // if no posts
+    if (!posts?.length) {
+        return res.status(400).json({ message: 'No posts found' })
+    }
+
+    // Add username to each post before sending the response
+    const postsWithUser = await Promise.all(posts.map(async (post) => {
+        const author = await User.findById(post.author).lean().exec()
+        if (!author) {
+            return { ...post, username: 'Unknown Author' }
+        }
+        return { ...post, username: author.username }
+    }))
+
+    res.json(postsWithUser)
 };
 
 // @desc Create new post
