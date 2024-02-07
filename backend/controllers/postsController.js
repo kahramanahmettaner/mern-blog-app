@@ -28,10 +28,26 @@ const getAllPosts = async (req, res) => {
 // @desc Create new post
 // @route POST /posts
 // @access Private
-const createNewPost = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
+const createNewPost = async (req, res) => {
+    const { author, title, text, tags } = req.body
+
+    // Confirm data
+    if (!author || !title || !text ) {
+        return res.status(400).json({ message: 'All fields are required' })
+    }
+    
+    const postObject = (!Array.isArray(tags) || !tags.length)
+    ? { author, title, text }
+    : { author, title, text, tags }
+    
+    // Create and store new post
+    const post = await Post.create(postObject)
+    
+    if (post) { // Created
+        res.status(201).json({ message: "New post created"})
+    } else {
+        res.status(400).json({ message: "Invalid post data received" })
+    }
 };
 
 // @desc Update a post
