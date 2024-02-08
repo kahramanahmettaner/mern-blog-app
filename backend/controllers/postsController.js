@@ -62,10 +62,24 @@ const updatePost = (req, res) => {
 // @desc Delete a post
 // @route DELETE /posts
 // @access Private
-const deletePost = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
+const deletePost = async (req, res) => {
+    const { id } = req.body
+
+    // Confirm data
+    if (!id) {
+        return res.status(400).json({ message: 'Post ID Required' })
+    }
+
+    // Confirm post exists to delete 
+    const post = await Post.findById(id).exec()
+
+    if (!post) {
+        return res.status(400).json({ message: "Post not found" })
+    }
+
+    const result = await post.deleteOne()
+    const reply = `Post ${result.title} with ID ${result._id} deleted`
+    res.json(reply)
 };
 
 
