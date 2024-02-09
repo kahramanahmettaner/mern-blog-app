@@ -53,10 +53,28 @@ const createNewPost = async (req, res) => {
 // @desc Update a post
 // @route PATCH /posts
 // @access Private
-const updatePost = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
+const updatePost = async (req, res) => {
+    const { id, title, text, tags } = req.body
+
+    // Confirm data
+    if (!id || !title || !text || !Array.isArray(tags)) {
+        return res.status(400).json({ message: 'All fields are required' })
+    }
+
+    // Confirm post exists to update
+    const post = await Post.findById(id).exec() // if we requested the lean data in return we would not recieve save method below
+
+    if (!post) {
+        return res.status(400).json({ message: "Post not found" })
+    }
+
+    post.title = title
+    post.text = text
+    post.tags = tags
+
+    const updatedPost = await post.save()
+    console.log(updatedPost)
+    res.json({ message: `${updatedPost.title} updated` })
 };
 
 // @desc Delete a post
