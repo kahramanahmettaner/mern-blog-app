@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
         email: mongoose.SchemaTypes.Email,
         image: {
             type: String,
-            required: true,
             default: ""
         },
         numberOfFollowers: {
