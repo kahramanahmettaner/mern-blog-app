@@ -82,11 +82,89 @@ const createNewUser = async (req, res) => {
 // @desc Update a user
 // @route PATCH /users
 // @access Private
-const updateUser = (req, res) => {
-    return res.json({
-        message: 'not implemented'
-    })
-}
+const updateUser = async (req, res) => {
+    const { id, username, email, currentPassword, newPassword } = req.body
+
+    // Confirm User ID
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' })
+    }
+
+    // Confirm user exists to update
+    const user = await User.findById(id).exec() // if we requested the lean data in return we would not recieve save method below
+
+    // Check if the user exists
+    if (!user) {
+        return res.status(400).json({ message: "User not found" })
+    }
+
+    // Count the number of truthy values among username, email and newPassword
+    const numTruthyValues = [username, email, newPassword].filter(Boolean).length;
+
+    // If the count is 0, handle it as an error
+    if (numTruthyValues === 0) {
+        return res.status(400).json({ message: 'At least one field from username, email, or newPassword is required' });
+    }
+
+    // Update the user based on which parameter is present
+    if (username) {
+        // Check for duplicate usernames in a case-insensitive manner
+        const duplicate = await User.findOne({ username }).collation({ locale: 'en', strength: 2 }).lean().exec()
+
+        // Deny updates if the current user already has this username
+        if (duplicate && duplicate._id.toString() === id) {
+            return res.status(409).json({ message: 'You already have this username. No changes made.' });
+        }
+
+        // Deny updates if another user already has this username
+        if (duplicate && duplicate._id.toString() !== id) {
+            return res.status(409).json({ message: 'Username already in use by another user. Please choose a different one.' });
+        }
+
+        user.username = username
+        
+    } if (email) {
+        
+        // Check for duplicate emails
+        const duplicate = await User.findOne({ email: email }).lean().exec();
+
+         // Deny updates if the current user already has this email
+        if (duplicate && duplicate._id.toString() === id) {
+            return res.status(409).json({ message: 'You already have this email. No changes made.' });
+        }
+
+        // Deny updates if another user already has this email
+        if (duplicate && duplicate._id.toString() !== id) {
+            return res.status(409).json({ message: 'Email already in use by another user. Please choose a different one.' });
+        }
+
+        user.email = email
+
+    } if (newPassword) {
+        // Check if current password exists
+        if (!currentPassword) {
+            return res.status(400).json({ message: 'Current password is required to update the password' })
+        }
+
+        // Check if the current password is correct
+        const matchPrev = await bcrypt.compare(currentPassword, user.password)
+
+        if (!matchPrev) return res.status(401).json({ message: 'Current password is incorrect' })
+
+        // Check if the new password is different 
+        const matchNew = await bcrypt.compare(newPassword, user.password)
+
+        if (matchNew) return res.status(401).json({ message: 'New password must be different from the current password' })
+
+        // Hash password
+        user.password = await bcrypt.hash(newPassword, 10) // salt rounds
+    }
+
+    const updatedUser = await user.save();
+
+    // Return a success response if the update is successful
+    res.json({ message: `${updatedUser.username} updated successfully` })
+};
 
 // @desc Delete a user
 // @route DELETE /users
